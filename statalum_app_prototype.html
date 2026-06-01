@@ -1,0 +1,501 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .app { display: flex; height: 620px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; background: var(--color-background-primary); }
+  .sidebar { width: 200px; background: #0F6E56; display: flex; flex-direction: column; flex-shrink: 0; }
+  .logo-area { padding: 20px 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .logo-circle { width: 44px; height: 44px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+  .logo-circle i { font-size: 22px; color: #fff; }
+  .logo-title { font-size: 13px; font-weight: 500; color: #fff; line-height: 1.3; }
+  .logo-sub { font-size: 10px; color: rgba(255,255,255,0.65); margin-top: 2px; }
+  .nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; cursor: pointer; color: rgba(255,255,255,0.75); font-size: 13px; transition: background 0.15s; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 500; }
+  .nav-item i { font-size: 16px; flex-shrink: 0; }
+  .nav-section { font-size: 10px; color: rgba(255,255,255,0.4); padding: 12px 16px 4px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar { padding: 14px 20px; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; justify-content: space-between; background: var(--color-background-primary); }
+  .topbar-title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .badge { background: #E1F5EE; color: #0F6E56; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 500; }
+  .badge-warn { background: #FAEEDA; color: #854F0B; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: #0F6E56; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #fff; cursor: pointer; }
+  .content { flex: 1; overflow-y: auto; padding: 20px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Home page */
+  .hero { background: linear-gradient(135deg, #0F6E56 0%, #085041 100%); border-radius: var(--border-radius-lg); padding: 28px; color: #fff; margin-bottom: 16px; position: relative; overflow: hidden; }
+  .hero::after { content: ''; position: absolute; right: -20px; top: -20px; width: 140px; height: 140px; border-radius: 50%; background: rgba(255,255,255,0.07); }
+  .hero-tag { font-size: 11px; background: rgba(255,255,255,0.18); padding: 3px 10px; border-radius: 12px; margin-bottom: 10px; display: inline-block; }
+  .hero h2 { font-size: 20px; font-weight: 500; margin-bottom: 6px; }
+  .hero p { font-size: 13px; opacity: 0.8; line-height: 1.5; max-width: 340px; }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px; text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 500; color: #0F6E56; }
+  .stat-label { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px; }
+  .card-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .card-title i { color: #0F6E56; font-size: 15px; }
+  .notif-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-dot { width: 6px; height: 6px; border-radius: 50%; background: #0F6E56; margin-top: 5px; flex-shrink: 0; }
+  .notif-text { font-size: 12px; color: var(--color-text-secondary); line-height: 1.4; }
+  .notif-time { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .event-item { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .event-item:last-child { border-bottom: none; }
+  .event-date { width: 36px; height: 36px; background: #E1F5EE; border-radius: var(--border-radius-md); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
+  .event-day { font-size: 14px; font-weight: 500; color: #0F6E56; line-height: 1; }
+  .event-month { font-size: 9px; color: #0F6E56; text-transform: uppercase; }
+  .event-info h4 { font-size: 12px; font-weight: 500; color: var(--color-text-primary); }
+  .event-info p { font-size: 11px; color: var(--color-text-secondary); }
+
+  /* Directory */
+  .search-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+  .search-bar input { flex: 1; padding: 8px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 13px; background: var(--color-background-primary); color: var(--color-text-primary); }
+  .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip { padding: 4px 10px; border: 0.5px solid var(--color-border-secondary); border-radius: 20px; font-size: 11px; cursor: pointer; color: var(--color-text-secondary); }
+  .chip.active { background: #E1F5EE; border-color: #0F6E56; color: #0F6E56; }
+  .member-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .member-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px; text-align: center; cursor: pointer; transition: border-color 0.15s; }
+  .member-card:hover { border-color: #0F6E56; }
+  .member-avatar { width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; color: #fff; }
+  .member-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .member-batch { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+  .member-job { font-size: 11px; color: #0F6E56; margin-top: 4px; }
+  .member-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 6px; }
+  .member-tag { background: #E1F5EE; color: #085041; font-size: 10px; padding: 2px 6px; border-radius: 10px; }
+
+  /* Registration form */
+  .form-section { margin-bottom: 20px; }
+  .form-section h3 { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 0.5px solid var(--color-border-tertiary); text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-field { display: flex; flex-direction: column; gap: 4px; }
+  .form-field label { font-size: 11px; color: var(--color-text-secondary); font-weight: 500; }
+  .form-field input, .form-field select, .form-field textarea { padding: 7px 10px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 12px; background: var(--color-background-primary); color: var(--color-text-primary); }
+  .form-field textarea { resize: vertical; min-height: 60px; }
+  .hobbies-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .hobby-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--color-text-secondary); cursor: pointer; }
+  .hobby-check input { accent-color: #0F6E56; }
+  .submit-btn { background: #0F6E56; color: #fff; border: none; padding: 10px 24px; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 500; cursor: pointer; width: 100%; margin-top: 8px; }
+  .submit-btn:hover { background: #085041; }
+
+  /* Admin panel */
+  .admin-tabs { display: flex; gap: 0; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 16px; }
+  .admin-tab { padding: 8px 16px; font-size: 12px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--color-text-secondary); }
+  .admin-tab.active { border-bottom-color: #0F6E56; color: #0F6E56; font-weight: 500; }
+  .pending-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); margin-bottom: 8px; }
+  .pending-avatar { width: 36px; height: 36px; border-radius: 50%; background: #E1F5EE; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: #0F6E56; flex-shrink: 0; }
+  .pending-info { flex: 1; }
+  .pending-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .pending-detail { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+  .action-btns { display: flex; gap: 6px; }
+  .btn-approve { background: #E1F5EE; color: #0F6E56; border: none; padding: 5px 12px; border-radius: var(--border-radius-md); font-size: 11px; font-weight: 500; cursor: pointer; }
+  .btn-reject { background: #FCEBEB; color: #A32D2D; border: none; padding: 5px 12px; border-radius: var(--border-radius-md); font-size: 11px; font-weight: 500; cursor: pointer; }
+
+  /* Gallery */
+  .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .gallery-item { aspect-ratio: 1; border-radius: var(--border-radius-md); overflow: hidden; cursor: pointer; position: relative; }
+  .gallery-thumb { width: 100%; height: 100%; object-fit: cover; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+  .g-green { background: #E1F5EE; }
+  .g-amber { background: #FAEEDA; }
+  .g-blue { background: #E6F1FB; }
+  .g-pink { background: #FBEAF0; }
+  .g-purple { background: #EEEDFE; }
+  .gallery-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.45); color: #fff; font-size: 10px; padding: 4px 6px; }
+
+  /* Journal */
+  .journal-item { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px; margin-bottom: 10px; }
+  .journal-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .journal-badge { background: #E1F5EE; color: #0F6E56; font-size: 10px; padding: 2px 8px; border-radius: 12px; }
+  .journal-badge.pending { background: #FAEEDA; color: #854F0B; }
+  .journal-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+  .journal-author { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 8px; }
+  .journal-abstract { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+  .read-btn { margin-top: 10px; font-size: 11px; color: #0F6E56; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+
+  /* About */
+  .about-hero { background: #E1F5EE; border-radius: var(--border-radius-lg); padding: 20px; margin-bottom: 16px; display: flex; align-items: center; gap: 16px; }
+  .about-icon { width: 56px; height: 56px; background: #0F6E56; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .about-icon i { font-size: 26px; color: #fff; }
+  .about-text h2 { font-size: 16px; font-weight: 500; color: #085041; }
+  .about-text p { font-size: 12px; color: #0F6E56; margin-top: 4px; line-height: 1.5; }
+  .bearers-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .bearer-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 12px; display: flex; gap: 10px; align-items: center; }
+  .bearer-avatar { width: 40px; height: 40px; border-radius: 50%; background: #0F6E56; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: #fff; flex-shrink: 0; }
+  .bearer-role { font-size: 10px; color: #0F6E56; font-weight: 500; }
+  .bearer-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .bearer-batch { font-size: 11px; color: var(--color-text-secondary); }
+
+  /* Login */
+  .login-wrap { max-width: 320px; margin: 40px auto 0; }
+  .login-logo { text-align: center; margin-bottom: 24px; }
+  .login-logo-circle { width: 60px; height: 60px; background: #E1F5EE; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+  .login-logo-circle i { font-size: 28px; color: #0F6E56; }
+  .login-logo h2 { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+  .login-logo p { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+  .login-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 20px; }
+  .login-field { margin-bottom: 12px; }
+  .login-field label { display: block; font-size: 11px; color: var(--color-text-secondary); font-weight: 500; margin-bottom: 4px; }
+  .login-field input { width: 100%; padding: 8px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 13px; background: var(--color-background-primary); color: var(--color-text-primary); }
+  .login-btn { background: #0F6E56; color: #fff; border: none; padding: 10px; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 500; cursor: pointer; width: 100%; margin-top: 4px; }
+  .login-btn:hover { background: #085041; }
+  .login-link { text-align: center; font-size: 12px; color: var(--color-text-secondary); margin-top: 12px; }
+  .login-link span { color: #0F6E56; cursor: pointer; font-weight: 500; }
+</style>
+
+<h2 class="sr-only">StatAlum – PG Department of Statistics, Utkal University – Alumni Portal Prototype</h2>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="logo-area">
+      <div class="logo-circle"><src logo.png>s<i class="ti ti-school" aria-hidden="true"></i></div>
+      <div class="logo-title">StatAlum</div>
+      <div class="logo-sub">PG Statistics · Utkal University</div>
+    </div>
+    <div class="nav">
+      <button class="nav-item active" onclick="showPage('home')"><i class="ti ti-home" aria-hidden="true"></i> Home</button>
+      <button class="nav-item" onclick="showPage('directory')"><i class="ti ti-users" aria-hidden="true"></i> Member Directory</button>
+      <button class="nav-item" onclick="showPage('register')"><i class="ti ti-user-plus" aria-hidden="true"></i> Join / Register</button>
+      <div class="nav-section">Community</div>
+      <button class="nav-item" onclick="showPage('about')"><i class="ti ti-info-circle" aria-hidden="true"></i> About</button>
+      <button class="nav-item" onclick="showPage('bearers')"><i class="ti ti-award" aria-hidden="true"></i> Office Bearers</button>
+      <button class="nav-item" onclick="showPage('notifications')"><i class="ti ti-bell" aria-hidden="true"></i> Notifications</button>
+      <button class="nav-item" onclick="showPage('events')"><i class="ti ti-calendar-event" aria-hidden="true"></i> Events Calendar</button>
+      <button class="nav-item" onclick="showPage('gallery')"><i class="ti ti-photo" aria-hidden="true"></i> Gallery</button>
+      <button class="nav-item" onclick="showPage('journal')"><i class="ti ti-book" aria-hidden="true"></i> The Journal</button>
+      <div class="nav-section">More</div>
+      <button class="nav-item" onclick="showPage('jobs')"><i class="ti ti-briefcase" aria-hidden="true"></i> Job Board</button>
+      <button class="nav-item" onclick="showPage('admin')"><i class="ti ti-shield-check" aria-hidden="true"></i> Admin Panel</button>
+      <button class="nav-item" onclick="showPage('login')"><i class="ti ti-logout" aria-hidden="true"></i> Login</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="page-title">Welcome Home</span>
+      <div class="topbar-right">
+        <span class="badge badge-warn"><i class="ti ti-clock" aria-hidden="true"></i> 3 pending approvals</span>
+        <span class="badge">247 members</span>
+        <div class="avatar" title="Logged in user">AB</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- HOME -->
+      <div class="page active" id="page-home">
+        <div class="hero">
+          <div class="hero-tag">🎓 Alumni Network</div>
+          <h2>PG Department of Statistics<br>Utkal University, Vani Vihar</h2>
+          <p>Connecting statisticians across generations. Share, grow, and celebrate the legacy of our department.</p>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-num">247</div><div class="stat-label">Members</div></div>
+          <div class="stat-card"><div class="stat-num">38</div><div class="stat-label">Batches (1985–2024)</div></div>
+          <div class="stat-card"><div class="stat-num">12</div><div class="stat-label">Countries</div></div>
+          <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Journal Issues</div></div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-bell" aria-hidden="true"></i> Recent Notifications</div>
+            <div class="notif-item"><div class="notif-dot"></div><div><div class="notif-text">Annual Alumni Meet 2025 — registration now open</div><div class="notif-time">2 days ago</div></div></div>
+            <div class="notif-item"><div class="notif-dot"></div><div><div class="notif-text">Journal Vol. 4 published – Dr. P. Rath's paper on Bayesian methods</div><div class="notif-time">5 days ago</div></div></div>
+            <div class="notif-item"><div class="notif-dot"></div><div><div class="notif-text">New member from batch 2018 joined the network</div><div class="notif-time">1 week ago</div></div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-calendar-event" aria-hidden="true"></i> Upcoming Events</div>
+            <div class="event-item"><div class="event-date"><div class="event-day">15</div><div class="event-month">Jun</div></div><div class="event-info"><h4>Annual Alumni Meet 2025</h4><p>Utkal University Campus, Bhubaneswar</p></div></div>
+            <div class="event-item"><div class="event-date"><div class="event-day">22</div><div class="event-month">Jun</div></div><div class="event-info"><h4>Webinar: ML for Statisticians</h4><p>Online · Dr. S. Mishra (IIT KGP)</p></div></div>
+            <div class="event-item"><div class="event-date"><div class="event-day">10</div><div class="event-month">Jul</div></div><div class="event-info"><h4>Journal Submission Deadline</h4><p>Vol. 5 · All members invited</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIRECTORY -->
+      <div class="page" id="page-directory">
+        <div class="search-bar">
+          <input type="text" placeholder="Search by name, batch year, specialization..." />
+          <button style="background:#0F6E56;color:#fff;border:none;padding:0 14px;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;"><i class="ti ti-search" aria-hidden="true"></i></button>
+        </div>
+        <div class="filter-chips">
+          <div class="chip active">All batches</div>
+          <div class="chip">2020s</div><div class="chip">2010s</div><div class="chip">2000s</div><div class="chip">1990s</div>
+          <div class="chip">Academia</div><div class="chip">Industry</div><div class="chip">Government</div>
+        </div>
+        <div class="member-grid">
+          <div class="member-card"><div class="member-avatar" style="background:#0F6E56;">SK</div><div class="member-name">Suresh Kumar Nayak</div><div class="member-batch">Batch of 2015</div><div class="member-job">Data Scientist, TCS</div><div class="member-tags"><span class="member-tag">Applied Stats</span><span class="member-tag">ML</span></div></div>
+          <div class="member-card"><div class="member-avatar" style="background:#185FA5;">PM</div><div class="member-name">Priya Mohapatra</div><div class="member-batch">Batch of 2018</div><div class="member-job">Statistician, ICMR</div><div class="member-tags"><span class="member-tag">Biostatistics</span></div></div>
+          <div class="member-card"><div class="member-avatar" style="background:#854F0B;">RD</div><div class="member-name">Rajesh Das</div><div class="member-batch">Batch of 2009</div><div class="member-job">Asst. Prof., IISER Pune</div><div class="member-tags"><span class="member-tag">Probability</span><span class="member-tag">Research</span></div></div>
+          <div class="member-card"><div class="member-avatar" style="background:#993556;">SP</div><div class="member-name">Smita Panda</div><div class="member-batch">Batch of 2021</div><div class="member-job">Analyst, RBI</div><div class="member-tags"><span class="member-tag">Econometrics</span></div></div>
+          <div class="member-card"><div class="member-avatar" style="background:#3B6D11;">AK</div><div class="member-name">Abhijit Kar</div><div class="member-batch">Batch of 2002</div><div class="member-job">Director, NABARD</div><div class="member-tags"><span class="member-tag">Time Series</span></div></div>
+          <div class="member-card"><div class="member-avatar" style="background:#533AB7;">NM</div><div class="member-name">Nandita Mishra</div><div class="member-batch">Batch of 2019</div><div class="member-job">PhD Scholar, IIT Delhi</div><div class="member-tags"><span class="member-tag">Bayesian</span></div></div>
+        </div>
+      </div>
+
+      <!-- REGISTER -->
+      <div class="page" id="page-register">
+        <div class="form-section">
+          <h3>Personal Information</h3>
+          <div class="form-grid">
+            <div class="form-field"><label>Full name</label><input type="text" placeholder="As per records" /></div>
+            <div class="form-field"><label>Date of birth</label><input type="date" /></div>
+            <div class="form-field"><label>Mobile number (Login ID)</label><input type="tel" placeholder="+91 XXXXXXXXXX" /></div>
+            <div class="form-field"><label>Email address</label><input type="email" placeholder="your@email.com" /></div>
+            <div class="form-field" style="grid-column:1/-1"><label>Residential address</label><textarea placeholder="Full address..."></textarea></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3>Academic Details</h3>
+          <div class="form-grid">
+            <div class="form-field"><label>Year of passing</label><select><option>Select year</option><option>2024</option><option>2023</option><option>2022</option><option>2021</option><option>2020</option><option>Earlier...</option></select></div>
+            <div class="form-field"><label>Specialization</label><select><option>Select</option><option>Applied Statistics</option><option>Probability Theory</option><option>Biostatistics</option><option>Econometrics</option><option>Time Series Analysis</option><option>Bayesian Statistics</option></select></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3>Professional Details</h3>
+          <div class="form-grid">
+            <div class="form-field"><label>Current job / position</label><input type="text" placeholder="e.g. Data Scientist at TCS" /></div>
+            <div class="form-field"><label>Organization</label><input type="text" placeholder="Organization name" /></div>
+            <div class="form-field"><label>Sector</label><select><option>Select</option><option>Academia / Research</option><option>Industry / Private</option><option>Government / PSU</option><option>Consulting</option><option>Other</option></select></div>
+            <div class="form-field"><label>LinkedIn profile (optional)</label><input type="url" placeholder="https://linkedin.com/in/..." /></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3>Hobbies &amp; Interests</h3>
+          <div class="hobbies-grid">
+            <label class="hobby-check"><input type="checkbox" /> Cricket</label>
+            <label class="hobby-check"><input type="checkbox" /> Music</label>
+            <label class="hobby-check"><input type="checkbox" /> Reading</label>
+            <label class="hobby-check"><input type="checkbox" /> Photography</label>
+            <label class="hobby-check"><input type="checkbox" /> Travel</label>
+            <label class="hobby-check"><input type="checkbox" /> Cooking</label>
+            <label class="hobby-check"><input type="checkbox" /> Painting</label>
+            <label class="hobby-check"><input type="checkbox" /> Yoga / Fitness</label>
+            <label class="hobby-check"><input type="checkbox" /> Chess</label>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3>Photo Upload</h3>
+          <div style="border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);padding:20px;text-align:center;cursor:pointer;color:var(--color-text-secondary);">
+            <i class="ti ti-upload" style="font-size:24px;margin-bottom:6px;display:block;" aria-hidden="true"></i>
+            <div style="font-size:12px;">Click to upload your photo (JPG/PNG, max 2MB)</div>
+          </div>
+        </div>
+        <button class="submit-btn">Submit for Admin Approval</button>
+      </div>
+
+      <!-- ABOUT -->
+      <div class="page" id="page-about">
+        <div class="about-hero">
+          <div class="about-icon"><i class="ti ti-chart-bar" aria-hidden="true"></i></div>
+          <div class="about-text">
+            <h2>PG Department of Statistics, Utkal University</h2>
+            <p>Established in 1965, the department has been a premier centre for statistical education in Odisha, producing alumni who serve across academia, industry, and government.</p>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-title"><i class="ti ti-target" aria-hidden="true"></i> Our Mission</div>
+          <p style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;">To foster lifelong bonds among alumni, support academic excellence, facilitate career growth, and contribute to the advancement of the statistical sciences through collaboration and shared knowledge.</p>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-history" aria-hidden="true"></i> Association Founded</div>
+            <p style="font-size:13px;color:var(--color-text-secondary);">The Utkal Statistics Alumni Association was formally constituted in 2005 with a charter of 40 founding members.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-map-pin" aria-hidden="true"></i> Location</div>
+            <p style="font-size:13px;color:var(--color-text-secondary);">PG Dept. of Statistics, Utkal University, Vani Vihar, Bhubaneswar – 751004, Odisha</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- BEARERS -->
+      <div class="page" id="page-bearers">
+        <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:14px;">Office bearers for the term 2024–2026</p>
+        <div class="bearers-grid">
+          <div class="bearer-card"><div class="bearer-avatar">PM</div><div><div class="bearer-role">President</div><div class="bearer-name">Prof. Pradipta Mohapatra</div><div class="bearer-batch">Batch of 1992 · Retd. Prof., Utkal University</div></div></div>
+          <div class="bearer-card"><div class="bearer-avatar" style="background:#185FA5;">SK</div><div><div class="bearer-role">Secretary</div><div class="bearer-name">Dr. Sushanta Kumar Das</div><div class="bearer-batch">Batch of 2005 · NABARD, Bhubaneswar</div></div></div>
+          <div class="bearer-card"><div class="bearer-avatar" style="background:#854F0B;">NP</div><div><div class="bearer-role">Treasurer</div><div class="bearer-name">Namita Pattnaik</div><div class="bearer-batch">Batch of 2010 · SBI, Bhubaneswar</div></div></div>
+          <div class="bearer-card"><div class="bearer-avatar" style="background:#533AB7;">AR</div><div><div class="bearer-role">Vice President</div><div class="bearer-name">Amarendra Routray</div><div class="bearer-batch">Batch of 1999 · IIT Bhubaneswar</div></div></div>
+          <div class="bearer-card"><div class="bearer-avatar" style="background:#993556;">SD</div><div><div class="bearer-role">Joint Secretary</div><div class="bearer-name">Sasmita Devi</div><div class="bearer-batch">Batch of 2015 · ICMR, Delhi</div></div></div>
+          <div class="bearer-card"><div class="bearer-avatar" style="background:#3B6D11;">BM</div><div><div class="bearer-role">Journal Editor</div><div class="bearer-name">Dr. Bijay Mishra</div><div class="bearer-batch">Batch of 2003 · Asst. Prof., NIT Rourkela</div></div></div>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div class="page" id="page-notifications">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div class="card" style="border-left:3px solid #0F6E56;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);">Annual Alumni Meet 2025 – Registration Open</div>
+              <span class="badge">Event</span>
+            </div>
+            <p style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;line-height:1.5;">The Annual Alumni Meet will be held on June 15, 2025 at the University campus. Register by June 10. Lunch and cultural programme included.</p>
+            <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:8px;">June 1, 2025</div>
+          </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);">Journal Vol. 5 – Call for Papers</div>
+              <span class="badge">Journal</span>
+            </div>
+            <p style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;line-height:1.5;">All members are invited to submit original research articles, reviews, or case studies for the upcoming journal edition. Deadline: July 10, 2025.</p>
+            <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:8px;">May 20, 2025</div>
+          </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);">Sad Demise: Prof. B.K. Tripathy</div>
+              <span class="badge badge-warn">Notice</span>
+            </div>
+            <p style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;line-height:1.5;">It is with deep sorrow we announce the passing of Prof. B.K. Tripathy, a beloved faculty member and guide to many batches. His contributions to the department remain eternal.</p>
+            <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:8px;">May 10, 2025</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVENTS -->
+      <div class="page" id="page-events">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="card" style="display:flex;gap:14px;align-items:flex-start;">
+            <div style="min-width:50px;background:#E1F5EE;border-radius:var(--border-radius-md);padding:8px;text-align:center;"><div style="font-size:20px;font-weight:500;color:#0F6E56;line-height:1;">15</div><div style="font-size:10px;color:#0F6E56;text-transform:uppercase;">Jun</div></div>
+            <div><div style="font-size:14px;font-weight:500;color:var(--color-text-primary);">Annual Alumni Meet 2025</div><div style="font-size:12px;color:var(--color-text-secondary);margin-top:3px;">Utkal University Campus · 10:00 AM – 4:00 PM</div><div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px;line-height:1.5;">Grand reunion with talks, networking, and cultural programme. All batches welcome.</div><div style="margin-top:8px;"><span class="badge">In-person</span></div></div>
+          </div>
+          <div class="card" style="display:flex;gap:14px;align-items:flex-start;">
+            <div style="min-width:50px;background:#FAEEDA;border-radius:var(--border-radius-md);padding:8px;text-align:center;"><div style="font-size:20px;font-weight:500;color:#854F0B;line-height:1;">22</div><div style="font-size:10px;color:#854F0B;text-transform:uppercase;">Jun</div></div>
+            <div><div style="font-size:14px;font-weight:500;color:var(--color-text-primary);">Webinar: Machine Learning for Statisticians</div><div style="font-size:12px;color:var(--color-text-secondary);margin-top:3px;">Online · 6:30 PM IST</div><div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px;line-height:1.5;">Speaker: Dr. S. Mishra, IIT Kharagpur. Topic: Bridging classical statistics and modern ML pipelines.</div><div style="margin-top:8px;"><span class="badge badge-warn">Online</span></div></div>
+          </div>
+          <div class="card" style="display:flex;gap:14px;align-items:flex-start;">
+            <div style="min-width:50px;background:#E6F1FB;border-radius:var(--border-radius-md);padding:8px;text-align:center;"><div style="font-size:20px;font-weight:500;color:#185FA5;line-height:1;">10</div><div style="font-size:10px;color:#185FA5;text-transform:uppercase;">Jul</div></div>
+            <div><div style="font-size:14px;font-weight:500;color:var(--color-text-primary);">Journal Vol. 5 – Submission Deadline</div><div style="font-size:12px;color:var(--color-text-secondary);margin-top:3px;">Rolling submission · Ends midnight</div><div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px;line-height:1.5;">Submit research articles, case studies, and reviews for the next journal edition.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GALLERY -->
+      <div class="page" id="page-gallery">
+        <div class="filter-chips" style="margin-bottom:12px;">
+          <div class="chip active">All</div><div class="chip">Reunions</div><div class="chip">Convocations</div><div class="chip">Seminars</div><div class="chip">Campus</div>
+        </div>
+        <div class="gallery-grid">
+          <div class="gallery-item g-green"><div class="gallery-thumb" style="font-size:36px;">🎓</div><div class="gallery-label">Annual Meet 2024</div></div>
+          <div class="gallery-item g-amber"><div class="gallery-thumb" style="font-size:36px;">📊</div><div class="gallery-label">Stats Seminar 2023</div></div>
+          <div class="gallery-item g-blue"><div class="gallery-thumb" style="font-size:36px;">🏫</div><div class="gallery-label">Dept. Campus</div></div>
+          <div class="gallery-item g-pink"><div class="gallery-thumb" style="font-size:36px;">🎉</div><div class="gallery-label">Silver Jubilee 2020</div></div>
+          <div class="gallery-item g-purple"><div class="gallery-thumb" style="font-size:36px;">📜</div><div class="gallery-label">Convocation 2022</div></div>
+          <div class="gallery-item g-green"><div class="gallery-thumb" style="font-size:36px;">🤝</div><div class="gallery-label">Industry Connect 2024</div></div>
+        </div>
+      </div>
+
+      <!-- JOURNAL -->
+      <div class="page" id="page-journal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div style="font-size:13px;color:var(--color-text-secondary);">Published research from our alumni community</div>
+          <button style="background:#0F6E56;color:#fff;border:none;padding:6px 14px;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;"><i class="ti ti-upload" aria-hidden="true"></i> Submit Article</button>
+        </div>
+        <div class="journal-item">
+          <div class="journal-meta"><span class="journal-badge">Published · Vol.4</span><span style="font-size:11px;color:var(--color-text-tertiary);">Jan 2025</span></div>
+          <div class="journal-title">Bayesian Hierarchical Models for Small Area Estimation in Odisha Districts</div>
+          <div class="journal-author">Dr. Prashant Rath · IIT Bhubaneswar · Batch of 2003</div>
+          <div class="journal-abstract">This paper presents a Bayesian approach to small area estimation using hierarchical models, with application to district-level poverty indices in Odisha.</div>
+          <div class="read-btn"><i class="ti ti-file-text" aria-hidden="true"></i> Read full paper</div>
+        </div>
+        <div class="journal-item">
+          <div class="journal-meta"><span class="journal-badge">Published · Vol.4</span><span style="font-size:11px;color:var(--color-text-tertiary);">Jan 2025</span></div>
+          <div class="journal-title">Statistical Modelling of Cyclone Intensity in the Bay of Bengal</div>
+          <div class="journal-author">Anita Senapati · IMD Bhubaneswar · Batch of 2010</div>
+          <div class="journal-abstract">A time series and extreme value theory based analysis of cyclonic activity trends in the Bay of Bengal from 1990 to 2023.</div>
+          <div class="read-btn"><i class="ti ti-file-text" aria-hidden="true"></i> Read full paper</div>
+        </div>
+        <div class="journal-item">
+          <div class="journal-meta"><span class="journal-badge pending">Pending Review</span><span style="font-size:11px;color:var(--color-text-tertiary);">Submitted May 2025</span></div>
+          <div class="journal-title">Multivariate Analysis of Agricultural Yield Data in Coastal Odisha</div>
+          <div class="journal-author">Ranjit Behera · OUAT · Batch of 2018</div>
+          <div class="journal-abstract">This paper applies PCA and cluster analysis to multiyear agricultural output data across coastal districts for policy-relevant insights.</div>
+        </div>
+      </div>
+
+      <!-- JOBS -->
+      <div class="page" id="page-jobs">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div style="font-size:13px;color:var(--color-text-secondary);">Posted by alumni, for alumni</div>
+          <button style="background:#0F6E56;color:#fff;border:none;padding:6px 14px;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;"><i class="ti ti-plus" aria-hidden="true"></i> Post a Job</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="card" style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:40px;height:40px;background:#E6F1FB;border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">🏛</div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:500;color:var(--color-text-primary);">Statistical Officer – NABARD</div><div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;">Bhubaneswar · Full-time · ₹8–12 LPA</div><div style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">M.Sc. Statistics required. Experience in rural finance data analysis preferred.</div><div style="margin-top:8px;display:flex;gap:6px;"><span class="badge">Government</span><span class="badge badge-warn">Closes June 30</span></div></div>
+          </div>
+          <div class="card" style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:40px;height:40px;background:#E1F5EE;border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">💻</div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:500;color:var(--color-text-primary);">Data Analyst – PhonePe</div><div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;">Bengaluru / Remote · ₹15–22 LPA</div><div style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">Proficiency in R/Python, SQL. Statistical modelling background strongly preferred.</div><div style="margin-top:8px;"><span class="badge">Industry</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN -->
+      <div class="page" id="page-admin">
+        <div class="admin-tabs">
+          <div class="admin-tab active">Pending Members (3)</div>
+          <div class="admin-tab">Pending Journal (1)</div>
+          <div class="admin-tab">Manage Bearers</div>
+          <div class="admin-tab">Send Notification</div>
+        </div>
+        <div class="pending-item">
+          <div class="pending-avatar">RK</div>
+          <div class="pending-info"><div class="pending-name">Rohan Kumar Sahoo</div><div class="pending-detail">Batch 2022 · Data Analyst, Wipro · Mobile: 9437XXXXXX</div></div>
+          <div class="action-btns"><button class="btn-approve"><i class="ti ti-check" aria-hidden="true"></i> Approve</button><button class="btn-reject"><i class="ti ti-x" aria-hidden="true"></i> Reject</button></div>
+        </div>
+        <div class="pending-item">
+          <div class="pending-avatar" style="background:#E6F1FB;color:#185FA5;">SM</div>
+          <div class="pending-info"><div class="pending-name">Sanjukta Mishra</div><div class="pending-detail">Batch 2020 · Biostatistician, AIIMS Bhubaneswar · Mobile: 8763XXXXXX</div></div>
+          <div class="action-btns"><button class="btn-approve"><i class="ti ti-check" aria-hidden="true"></i> Approve</button><button class="btn-reject"><i class="ti ti-x" aria-hidden="true"></i> Reject</button></div>
+        </div>
+        <div class="pending-item">
+          <div class="pending-avatar" style="background:#FAEEDA;color:#854F0B;">PB</div>
+          <div class="pending-info"><div class="pending-name">Prakash Behera</div><div class="pending-detail">Batch 2017 · Statistical Consultant · Mobile: 7894XXXXXX</div></div>
+          <div class="action-btns"><button class="btn-approve"><i class="ti ti-check" aria-hidden="true"></i> Approve</button><button class="btn-reject"><i class="ti ti-x" aria-hidden="true"></i> Reject</button></div>
+        </div>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="page" id="page-login">
+        <div class="login-wrap">
+          <div class="login-logo">
+            <div class="login-logo-circle"><i class="ti ti-chart-bar" aria-hidden="true"></i></div>
+            <h2>StatAlum Portal</h2>
+            <p>PG Statistics · Utkal University</p>
+          </div>
+          <div class="login-card">
+            <div class="login-field"><label>Mobile number</label><input type="tel" placeholder="Your registered mobile" /></div>
+            <div class="login-field"><label>Password</label><input type="password" placeholder="••••••••" /></div>
+            <button class="login-btn">Sign In</button>
+            <div class="login-link">Not yet a member? <span onclick="showPage('register')">Register here</span></div>
+            <div class="login-link" style="margin-top:6px;"><span>Forgot password?</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const titles = {
+  home:'Welcome Home', directory:'Member Directory', register:'Join / Register',
+  about:'About Us', bearers:'Office Bearers', notifications:'Notifications',
+  events:'Events Calendar', gallery:'Gallery', journal:'The Journal',
+  jobs:'Job Board', admin:'Admin Panel', login:'Login'
+};
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.getElementById('page-title').textContent = titles[id] || id;
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if(n.getAttribute('onclick') === "showPage('" + id + "')") n.classList.add('active');
+  });
+}
+</script>
